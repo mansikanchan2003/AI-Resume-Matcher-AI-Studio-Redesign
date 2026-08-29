@@ -1,0 +1,8 @@
+{
+  "name": "AI Resume Matcher",
+  "description": "AI-powered resume and job description matcher with skill gap analysis, STAR resume improvements, and tailored interview prep.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
