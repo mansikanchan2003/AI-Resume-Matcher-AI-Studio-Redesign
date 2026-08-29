@@ -214,12 +214,14 @@ Requirements:
     simulatedResumeText = customText;
 
     if (file) {
+      currentCandidateInfo.isBenchmark = false;
       fileNameDisplay.textContent = file.name;
       const sizeKb = Math.round(file.size / 1024);
       document.getElementById("file-status-text").textContent = `${sizeKb} KB • Ready for cognitive screening`;
       fileSelectedChip.classList.remove("hidden");
       dropzone.classList.add("hidden");
     } else if (customText) {
+      currentCandidateInfo.isBenchmark = true;
       fileNameDisplay.textContent = `${currentCandidateInfo.candidateName}_Resume.pdf`;
       document.getElementById("file-status-text").textContent = "Benchmark Profile Dossier Loaded";
       fileSelectedChip.classList.remove("hidden");
@@ -231,6 +233,7 @@ Requirements:
   function clearSelectedFile() {
     selectedFile = null;
     simulatedResumeText = "";
+    currentCandidateInfo.isBenchmark = false;
     fileSelectedChip.classList.add("hidden");
     dropzone.classList.remove("hidden");
     if (fileInput) fileInput.value = "";
@@ -298,7 +301,8 @@ Requirements:
       candidateName: bm.candidateName,
       candidateId: bm.candidateId,
       targetRole: bm.role,
-      email: bm.email
+      email: bm.email,
+      isBenchmark: true
     };
 
     if (targetRoleInput) targetRoleInput.value = bm.role;
@@ -451,6 +455,7 @@ Requirements:
 
   // ── HISTORY REPOSITORY PERSISTENCE ─────────────────────────
   const STORAGE_KEY = "talentpulse_ai_history_v1";
+  const DECISIONS_KEY = "talentpulse_ai_decisions_v1";
 
   function getHistoryRecords() {
     try {
@@ -460,7 +465,7 @@ Requirements:
       console.warn("Could not parse history", e);
     }
 
-    // Default Seed History matching Stitch Screenshot 4
+    // Default Seed History matching Stitch Screenshot 4 (explicitly flagged as Demo Samples)
     return [
       {
         candidate_name: "Elena Vance",
@@ -469,6 +474,7 @@ Requirements:
         seniority: "SENIOR",
         match_score: 94,
         date: "Oct 24, 2024",
+        isDemo: true,
         screeningResult: {
           match_score: 94,
           seniority_alignment: "Well-Matched",
@@ -488,6 +494,7 @@ Requirements:
         seniority: "STAFF",
         match_score: 87,
         date: "Oct 22, 2024",
+        isDemo: true,
         screeningResult: {
           match_score: 87,
           seniority_alignment: "Well-Matched",
@@ -505,6 +512,7 @@ Requirements:
         seniority: "DIRECTOR",
         match_score: 79,
         date: "Oct 19, 2024",
+        isDemo: true,
         screeningResult: {
           match_score: 79,
           seniority_alignment: "Well-Matched",
@@ -523,6 +531,8 @@ Requirements:
       seniority: screeningResult.seniority_alignment === "Overqualified" ? "STAFF" : "SENIOR",
       match_score: screeningResult.match_score || 85,
       date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      isDemo: false,
+      isBenchmark: Boolean(info.isBenchmark),
       screeningResult: screeningResult
     };
 
@@ -543,7 +553,11 @@ Requirements:
       );
     }
 
-    if (filter === "high-match") {
+    if (filter === "real") {
+      records = records.filter(r => !r.isDemo);
+    } else if (filter === "demo") {
+      records = records.filter(r => Boolean(r.isDemo));
+    } else if (filter === "high-match") {
       records = records.filter(r => Number(r.match_score) >= 80);
     }
 
@@ -559,7 +573,9 @@ Requirements:
             candidateName: rec.candidate_name,
             candidateId: `CAN-${Math.floor(1000 + Math.random() * 9000)}`,
             targetRole: rec.job_title,
-            email: rec.email
+            email: rec.email,
+            isBenchmark: Boolean(rec.isBenchmark),
+            isDemo: Boolean(rec.isDemo)
           };
           latestAnalysisResult = rec.screeningResult;
           UI.renderScoreCard(rec.screeningResult, currentCandidateInfo);
@@ -608,6 +624,22 @@ Requirements:
   });
 
   // ── ACTION BUTTONS & RECRUITER WORKFLOWS ────────────────────
+  function recordDecision(status) {
+    try {
+      const stored = localStorage.getItem(DECISIONS_KEY) || "{}";
+      const decisions = JSON.parse(stored);
+      decisions[currentCandidateInfo.candidateName] = {
+        status: status,
+        candidateId: currentCandidateInfo.candidateId,
+        role: currentCandidateInfo.targetRole,
+        recordedAt: new Date().toISOString()
+      };
+      localStorage.setItem(DECISIONS_KEY, JSON.stringify(decisions));
+    } catch (e) {
+      console.warn("Could not save decision locally", e);
+    }
+  }
+
   if (btnViewEvalDetail) {
     btnViewEvalDetail.addEventListener("click", () => {
       handleNavigation("evaluation");
@@ -624,7 +656,8 @@ Requirements:
 
   if (btnScheduleInterview || btnEvalMove) {
     const handler = () => {
-      UI.showToast(`Interview invitation dispatched to ${currentCandidateInfo.candidateName}!`, "success");
+      recordDecision("Interview Scheduled");
+      UI.showToast(`Interview invitation dispatched to ${currentCandidateInfo.candidateName}! (Saved locally)`, "success");
     };
     if (btnScheduleInterview) btnScheduleInterview.addEventListener("click", handler);
     if (btnEvalMove) btnEvalMove.addEventListener("click", handler);
@@ -632,19 +665,22 @@ Requirements:
 
   if (btnDecisionReject) {
     btnDecisionReject.addEventListener("click", () => {
-      UI.showToast(`Status updated: Candidate marked as Rejected.`, "error");
+      recordDecision("Rejected");
+      UI.showToast(`Decision recorded: ${currentCandidateInfo.candidateName} marked as Rejected (saved locally).`, "error");
     });
   }
 
   if (btnDecisionHold) {
     btnDecisionHold.addEventListener("click", () => {
-      UI.showToast(`Status updated: Candidate placed on Hold for further review.`, "info");
+      recordDecision("On Hold");
+      UI.showToast(`Decision recorded: ${currentCandidateInfo.candidateName} placed on Hold (saved locally).`, "info");
     });
   }
 
   if (btnDecisionAdvance) {
     btnDecisionAdvance.addEventListener("click", () => {
-      UI.showToast(`Candidate advanced to Recruiter Technical Interview!`, "success");
+      recordDecision("Advanced to Interview");
+      UI.showToast(`Decision recorded: ${currentCandidateInfo.candidateName} advanced to Technical Interview (saved locally).`, "success");
     });
   }
 
@@ -669,8 +705,20 @@ Requirements:
     UI.showToast("Exported structured candidate dossier!", "success");
   }
 
+  function exportAllHistory() {
+    const records = getHistoryRecords();
+    const blob = new Blob([JSON.stringify(records, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `TalentPulse_Analysis_Repository_${new Date().toISOString().split("T")[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    UI.showToast("Exported all repository records!", "success");
+  }
+
   if (btnExportPdf) btnExportPdf.addEventListener("click", exportReport);
-  if (btnExportHistoryReport) btnExportHistoryReport.addEventListener("click", exportReport);
+  if (btnExportHistoryReport) btnExportHistoryReport.addEventListener("click", exportAllHistory);
 
   // Global search input
   if (globalSearchInput) {

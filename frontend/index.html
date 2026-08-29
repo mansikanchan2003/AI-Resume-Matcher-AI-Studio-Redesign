@@ -265,7 +265,10 @@
 
         <!-- Benchmark Profiles Quick Pick -->
         <div class="benchmark-section">
-          <span class="benchmark-label">Or Load a Benchmark Profile</span>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <span class="benchmark-label" style="margin-bottom: 0;">Try Quick-Start Benchmark Profiles</span>
+            <span class="badge-source-tag badge-source-demo">Demo Dossiers • Triggers Real AI Analysis</span>
+          </div>
           <div class="benchmark-cards-row">
             <button class="benchmark-card" id="btn-load-backend-sample">
               <div class="benchmark-icon">
@@ -275,6 +278,7 @@
                 </svg>
               </div>
               <div class="benchmark-info">
+                <span class="benchmark-card-badge">Quick Start Sample</span>
                 <h4>Software Engineer</h4>
                 <p>Cloud Platform & Backend (AWS/FastAPI)</p>
               </div>
@@ -289,6 +293,7 @@
                 </svg>
               </div>
               <div class="benchmark-info">
+                <span class="benchmark-card-badge">Quick Start Sample</span>
                 <h4>Frontend Architect</h4>
                 <p>React, TypeScript & WebGL Ecosystem</p>
               </div>
@@ -302,6 +307,7 @@
                 </svg>
               </div>
               <div class="benchmark-info">
+                <span class="benchmark-card-badge">Quick Start Sample</span>
                 <h4>Marketing Manager</h4>
                 <p>B2B SaaS Growth & Performance</p>
               </div>
@@ -359,6 +365,7 @@
                 <span class="status-dot"></span>
                 Active Review
               </span>
+              <span class="badge-source-tag badge-source-real" id="screening-source-badge">REAL AI ANALYSIS</span>
             </div>
             <h2 class="candidate-name-display" id="screening-candidate-name">Candidate Evaluation</h2>
             <div class="candidate-role-display" id="screening-target-role">Senior Backend Engineer</div>
@@ -715,8 +722,9 @@
 
           <div class="filter-pills-group">
             <button class="filter-pill active" data-filter="all">All Assessments</button>
+            <button class="filter-pill" data-filter="real">Real Scans</button>
+            <button class="filter-pill" data-filter="demo">Demo Samples</button>
             <button class="filter-pill" data-filter="high-match">High Match (80%+)</button>
-            <button class="filter-pill" data-filter="recent">Recent</button>
           </div>
         </div>
 

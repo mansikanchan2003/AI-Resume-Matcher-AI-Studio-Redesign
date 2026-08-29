@@ -164,6 +164,17 @@ const UI = {
       candidateIdEl.textContent = `ID: ${candidateInfo.candidateId}`;
     }
 
+    const sourceBadgeEl = document.getElementById("screening-source-badge");
+    if (sourceBadgeEl) {
+      if (candidateInfo.isBenchmark) {
+        sourceBadgeEl.textContent = "BENCHMARK PRESET (REAL AI)";
+        sourceBadgeEl.className = "badge-source-tag badge-source-demo";
+      } else {
+        sourceBadgeEl.textContent = "REAL CANDIDATE ANALYSIS";
+        sourceBadgeEl.className = "badge-source-tag badge-source-real";
+      }
+    }
+
     // Score Number with % sign
     if (scoreNumber) {
       scoreNumber.innerHTML = `${score}<span class="gauge-percent-sign">%</span>`;
@@ -709,13 +720,21 @@ const UI = {
         .substring(0, 2)
         .toUpperCase();
 
+      const isDemo = Boolean(rec.isDemo);
+      const sourceBadgeHtml = isDemo
+        ? `<span class="badge-source-tag badge-source-demo">DEMO SAMPLE</span>`
+        : `<span class="badge-source-tag badge-source-real">REAL SCAN</span>`;
+
       return `
         <tr data-history-index="${index}">
           <td>
             <div class="table-candidate-cell">
               <div class="table-candidate-avatar">${initials}</div>
               <div class="table-candidate-info">
-                <span class="table-candidate-name">${this.escapeHtml(rec.candidate_name || "Candidate")}</span>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                  <span class="table-candidate-name">${this.escapeHtml(rec.candidate_name || "Candidate")}</span>
+                  ${sourceBadgeHtml}
+                </div>
                 <span class="table-candidate-email">${this.escapeHtml(rec.email || "applicant@recruitment.ai")}</span>
               </div>
             </div>
